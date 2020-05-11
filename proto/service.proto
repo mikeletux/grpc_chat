@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+service Chat {
+    rpc Connect(BeginMessage) returns (stream ChatMessage);
+    rpc SendMessage(ChatMessage) returns (Status);
+}
+
+message BeginMessage {
+    string Name = 1;
+}
+
+message ChatMessage {
+    google.protobuf.Timestamp Timestamp = 1;
+    string NameFrom = 2;
+    string Text = 3;
+}
+
+message Status {
+    bool ok = 1;
+    string ErrorMessage = 2;
+}
+
+
