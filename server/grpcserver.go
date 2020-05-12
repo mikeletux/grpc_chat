@@ -6,29 +6,13 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"sync"
 )
-
-var chat Chat
-
-//List of connected clients
-type Chat struct {
-	mux        sync.Mutex
-	clientList map[string]clientNode //they key of the map will be the user's name
-}
-
-type clientNode struct {
-	Availabe bool
-	Username string
-	Channel  chan string
-}
 
 type GRPCServer struct {
 	config Config
 }
 
 func NewGRPCServer(config Config) Server {
-	chat.clientList = make(map[string]clientNode)
 	return &GRPCServer{config}
 }
 
@@ -39,8 +23,8 @@ func (s *GRPCServer) Serve() (err error) {
 	}
 	log.Printf("Server listening on %v:%v", s.config.Addr, s.config.Port)
 	serv := grpc.NewServer()
-	chatServer := ChatServer{}
-	proto.RegisterChatServer(serv, &chatServer)
+	chatServer := NewChatServer()
+	proto.RegisterChatServer(serv, chatServer)
 	if err = serv.Serve(ln); err != nil {
 		return fmt.Errorf(fmt.Sprintf("there was an error when serving from gRPC server"))
 	}

@@ -5,11 +5,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/mikeletux/grpc_chat/proto"
 	"google.golang.org/grpc"
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 var (
@@ -57,7 +59,13 @@ func SenderWorker(client proto.ChatClient, done chan bool) (err error) {
 			done <- true
 			break
 		}
-		client.SendMessage(context.Background(), &proto.ChatMessage{NameFrom: username, Text: text})
+		//Create send message
+		timestamp, err := ptypes.TimestampProto(time.Now())
+		if err != nil {
+			//Handle the error
+		}
+		msg := &proto.ChatMessage{Timestamp: timestamp, NameFrom: username, Text: text}
+		client.SendMessage(context.Background(), msg)
 	}
 	return nil
 }
@@ -70,6 +78,10 @@ func ReceiveFromWorker(stream proto.Chat_ConnectClient, done chan bool) {
 			done <- true
 			break
 		}
-		fmt.Printf("%v - %v\n", msg.GetNameFrom(), msg.GetText())
+		timestamp, err := ptypes.Timestamp(msg.GetTimestamp())
+		if err != nil {
+			//Handle issue
+		}
+		fmt.Printf("[%v](%v) - %v\n", timestamp, msg.GetNameFrom(), msg.GetText())
 	}
 }
